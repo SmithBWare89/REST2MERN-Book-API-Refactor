@@ -4,9 +4,11 @@ const { signToken } = require('../utils/auth');
 
 const resolvers = {
     Query: {
-        me: async (parent, args) => {
+        me: async (parent, {username}, {user}) => {
             try {
-                const userData = await User.findOne({_id: args.id})
+                user
+                    ? await (await User.findOne({username})).select('-__v -password').populate('savedBooks')
+                    : new AuthenticationError('You must be logged in!')
             } catch (error) {
                 console.log(error);
             }
@@ -15,9 +17,12 @@ const resolvers = {
     Mutation: {
         addUser: async (parent, args) => {
             try {
-                const user = await User.create(args.user);
-                const token = await signToken(user);
-                return { token, user };
+                const user = await User.create(args.user).select('-__v -password');
+                !user
+                    ? console.log('Unable to create user')
+                    : {token: signToken(user), user}
+                // const token = await signToken(user);
+                // return { token, user };
             } catch (error) {
                 console.log(error);
             }
@@ -37,7 +42,8 @@ const resolvers = {
                         {
                             new: true
                         }
-                    );
+                    )
+                    .select('-password')
                     return userData;
                 }
 
@@ -48,7 +54,7 @@ const resolvers = {
         },
         login: async (parent, {loginInfo}) => {
             try {
-                const user = await User.findOne({email: loginInfo.email});
+                const user = await User.findOne({email: loginInfo.email}).select('-password');
                 // if (!user) {
                 //     throw new AuthenticationError('Incorrect credentials!');
                 // }

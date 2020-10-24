@@ -49,7 +49,7 @@ const typeDefs = gql`
 
     # Queries
     type Query {
-        me: User
+        me (username: String!): User
     }
 
     # Mutations
