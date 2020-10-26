@@ -71,12 +71,12 @@ const resolvers = {
                 console.log(error);
             }
         },
-        removeBook: async (parent, {bookId}, {user}) => {
+        removeBook: async (parent, {bookId}, context) => {
             try {
                 if(context.user) {
                     const userData = await User.findOneAndUpdate(
                         {
-                            _id: user._id
+                            _id: context.user._id
                         },
                         {
                             $pull: {
@@ -89,10 +89,12 @@ const resolvers = {
                             new: true
                         }
                     );
-                    
-                    userData
-                        ? userData
-                        : new AuthenticationError('Unable to process deletion.')
+
+                    if (!userData) {
+                        throw new AuthenticationError('Unable to process deletion.');
+                    }
+
+                    return userData;
                 }
 
                 throw new AuthenticationError('You must be logged in!')

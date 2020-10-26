@@ -8,9 +8,14 @@ import { removeBookId } from '../utils/localStorage';
 import { useQuery } from '@apollo/react-hooks';
 import { GET_ME } from '../utils/queries';
 
+import { useMutation } from '@apollo/client';
+import { REMOVE_BOOK } from '../utils/mutations'
+
 const SavedBooks = () => {
   const [userData, setUserData] = useState({});
   const { loading, data } = useQuery(GET_ME);
+
+  const [removeBook, removedBook] = useMutation(REMOVE_BOOK);
 
   useEffect(() => {
     setUserData(data?.me)
@@ -26,14 +31,13 @@ const SavedBooks = () => {
     }
 
     try {
-      const response = await deleteBook(bookId, token);
+      const removedData = await removeBook({
+        variables: {
+          bookId
+        }
+      });
 
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      const updatedUser = await response.json();
-      setUserData(updatedUser);
+      setUserData(removedData?.data?.removeBook);
       // upon success, remove book's id from localStorage
       removeBookId(bookId);
     } catch (err) {
