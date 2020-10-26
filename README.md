@@ -3,7 +3,7 @@
 ## Description
 This project is intended to be a demonstration of a MERN (Mongo, Express, REACT, and Node) application. I've taken the source code provided for the project and converted the RESTful API that was originally in place into one that connects all of the aforementioned modalities together. This has been accomplished by creating a working REACT server using the Apollo package as well as using GraphQL to write queries and mutations that return data from the MongoDB database. Bridging the gap between all of the aforementioned packages proved to be a really difficult challenge as there was more files to manage than in my previous projects but it's something that I've definitely learned from.
 
-![MERN Application Photo](assets\images\book-api-image.PNG)
+![MERN Application Photo](.\assets\images\book-api-image.PNG)
 
 ## User Story
 ```
