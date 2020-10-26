@@ -16,8 +16,6 @@ const SavedBooks = () => {
 
   const [removeBook] = useMutation(REMOVE_BOOK);
 
-  console.log(data)
-
   useEffect(() => {
     setUserData(data?.me)
   },[data]);
@@ -32,13 +30,13 @@ const SavedBooks = () => {
     }
 
     try {
-      const data = await removeBook({
+      const info = await removeBook({
         variables: {
           bookId
         }
       });
 
-      setUserData(data?.data?.removeBook);
+      setUserData(info?.data?.removeBook);
       // upon success, remove book's id from localStorage
       removeBookId(bookId);
     } catch (err) {
