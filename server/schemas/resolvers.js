@@ -4,11 +4,14 @@ const { signToken } = require('../utils/auth');
 
 const resolvers = {
     Query: {
-        me: async (parent, {username}, {user}) => {
+        me: async (parent, args, context) => {
             try {
-                user
-                    ? await (await User.findOne({username})).select('-__v -password').populate('savedBooks')
-                    : new AuthenticationError('You must be logged in!')
+                console.log(context.user)
+                if (context.user) {
+                    const user = await User.findOne({_id: context.user._id});
+                    return user
+                }
+                throw new AuthenticationError('You must be logged in!')
             } catch (error) {
                 console.log(error);
             }
@@ -17,33 +20,29 @@ const resolvers = {
     Mutation: {
         addUser: async (parent, args) => {
             try {
-                const user = await User.create(args.user).select('-__v -password');
-                !user
-                    ? console.log('Unable to create user')
-                    : {token: signToken(user), user}
-                // const token = await signToken(user);
-                // return { token, user };
+                const user = await User.create(args);
+                const token = await signToken(user);
+                return { token, user };
             } catch (error) {
                 console.log(error);
             }
         },
-        saveBook: async (parent, {book}, {user}) => {
+        saveBook: async (parent, {bookData}, context) => {
             try {
-                if(user) {
+                if(context.user) {
                     const userData = await User.findOneAndUpdate(
                         {
-                            username: user.username
+                            _id: context.user._id
                         },
                         {
-                            $addToSet: {
-                                savedBooks: {...book}
+                            $push: {
+                                savedBooks: {...bookData}
                             }
                         },
                         {
                             new: true
                         }
                     )
-                    .select('-password')
                     return userData;
                 }
 
@@ -52,27 +51,22 @@ const resolvers = {
                 console.log(error);
             }
         },
-        login: async (parent, {loginInfo}) => {
+        login: async (parent, {email, password}) => {
             try {
-                const user = await User.findOne({email: loginInfo.email}).select('-password');
-                // if (!user) {
-                //     throw new AuthenticationError('Incorrect credentials!');
-                // }
+                const user = await User.findOne({email});
+                if (!user) {
+                    throw new AuthenticationError('Incorrect credentials!');
+                }
 
-                // const correctPw = await user.isCorrectPassword(loginInfo.password);
+                const correctPw = await user.isCorrectPassword(password);
 
-                // if (!correctPw) {
-                //     throw new AuthenticationError('Incorrrect credentials!');
-                // }
+                if (!correctPw) {
+                    throw new AuthenticationError('Incorrrect credentials!');
+                }
 
-                // const token = signToken(user);
-                // return {token, user};
+                const token = signToken(user);
+                return {token, user};
 
-                !user
-                    ? new AuthenticationError('Incorrect credentials!')
-                    : !correctPw
-                        ? new AuthenticationError('Incorrect credentials!')
-                        : { token: signToken(user), user }
             } catch (error) {
                 console.log(error);
             }
@@ -82,7 +76,7 @@ const resolvers = {
                 if(context.user) {
                     const userData = await User.findOneAndUpdate(
                         {
-                            username: user.username
+                            _id: user._id
                         },
                         {
                             $pull: {
