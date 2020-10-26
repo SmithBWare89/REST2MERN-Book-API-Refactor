@@ -34,7 +34,7 @@ const resolvers = {
                             _id: context.user._id
                         },
                         {
-                            $push: {
+                            $addToSet: {
                                 savedBooks: {...bookData}
                             }
                         },
