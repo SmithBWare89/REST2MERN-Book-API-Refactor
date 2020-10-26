@@ -6,7 +6,6 @@ const resolvers = {
     Query: {
         me: async (parent, args, context) => {
             try {
-                console.log(context.user)
                 if (context.user) {
                     const user = await User.findOne({_id: context.user._id});
                     return user
